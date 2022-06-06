@@ -18,7 +18,7 @@ import (
 const (
 	commitMsgFilePath = ".git/COMMIT_EDITMSG"
 	defaultYamlName   = ".commitlinter.yaml"
-	formatDoc         = "<type>(<scope>): <subject>"
+	formatDoc         = "<type>(<scope>): <subject> [#optional-task]"
 	scopeDoc          = "The <scope> can be empty (e.g. if the change is a global or difficult to assign to a single component), in which case the parentheses are omitted."
 	styleDoc          = "The <type> and <scope> should always be lowercase."
 	subjectDoc        = "The first letter of <subject> should be lowercase."
@@ -39,17 +39,18 @@ func textBrightYellow(s string) string {
 var (
 	r = flag.String("rule", "", "select rule file path (config.yaml)")
 
-	FormatRegularPattern = `([a-zA-Z]+)(\(.*\))?:\s+(.*)`
+	FormatRegularPattern = `([a-zA-Z]+)(\(.*\))?:\s(.*?)(\s\[#\S+\])?$`
 
 	errorTitle    = "============================ Invalid Message ================================"
 	errorTemplate = "\n%s\ntitle message:	%s\ncorrect format:	%s\n\n%s\n\nSee: %s\n"
 	footer        = "============================================================================="
 
-	ErrStyle   = errors.New("invalid style error")
-	ErrType    = errors.New("invalid type error")
-	ErrFormat  = errors.New("invalid format error")
-	ErrScope   = errors.New("invalid scope error")
-	ErrSubject = errors.New("invalid subject error")
+	ErrStyle       = errors.New("invalid style error")
+	ErrType        = errors.New("invalid type error")
+	ErrFormat      = errors.New("invalid format error")
+	ErrScope       = errors.New("invalid scope error")
+	ErrSubject     = errors.New("invalid subject error")
+	ErrMissingTask = errors.New("missing task error")
 
 	DefaultConfig = Config{
 		SkipPrefixes: []string{
@@ -104,6 +105,7 @@ var (
 type TypeRule struct {
 	Type        string `yaml:"type"`
 	Description string `yaml:"description"`
+	Task        bool   `yaml:"task"`
 }
 
 type TypeRules []TypeRule
@@ -142,6 +144,7 @@ type Format struct {
 	Type    string
 	Scope   string
 	Subject string
+	Task    string
 }
 
 func fileExists(filename string) bool {
@@ -174,13 +177,14 @@ func NewFormat(m string) (Format, error) {
 	if err != nil {
 		return Format{}, err
 	}
-	ss := p.FindAllStringSubmatch(m, 1)
-	if len(ss) == 0 || len(ss[0]) != 4 {
+	ss := p.FindAllStringSubmatch(strings.TrimSpace(m), 1)
+	if len(ss) == 0 || len(ss[0]) != 5 {
 		return Format{}, ErrFormat
 	}
 
 	t := ss[0][1]
 	subject := ss[0][3]
+	subject = strings.TrimSpace(subject)
 	if t == "" || subject == "" {
 		return Format{}, ErrFormat
 	}
@@ -193,10 +197,16 @@ func NewFormat(m string) (Format, error) {
 		}
 	}
 
+	task := ss[0][4]
+	if task != "" {
+		task = strings.TrimPrefix(strings.TrimSuffix(task, "]"), " [#")
+	}
+
 	f := Format{
 		Type:    t,
 		Scope:   scope,
 		Subject: subject,
+		Task:    task,
 	}
 	return f, nil
 }
@@ -234,6 +244,16 @@ func (f Format) typeLinter(c Config) error {
 	return ErrType
 }
 
+func (f Format) taskLinter(c Config) error {
+	for _, r := range c.TypeRules {
+		if r.Type == f.Type && r.Task == true && f.Task == "" {
+			return ErrMissingTask
+		}
+	}
+
+	return nil
+}
+
 func (f Format) Verify(c Config) error {
 	if err := f.typeLinter(c); err != nil {
 		return err
@@ -244,6 +264,10 @@ func (f Format) Verify(c Config) error {
 	}
 
 	if err := f.subjectLinter(); err != nil {
+		return err
+	}
+
+	if err := f.taskLinter(c); err != nil {
 		return err
 	}
 
@@ -290,6 +314,8 @@ func finally(m string, conf Config, err error) {
 		message = fmt.Sprintf(errorTemplate, textRed(errorTitle), textRed(m), textBrightGreen(formatDoc), textBrightYellow(conf.ScopeDoc), textBrightGreen(conf.Reference))
 	case ErrSubject:
 		message = fmt.Sprintf(errorTemplate, textRed(errorTitle), textRed(m), textBrightGreen(formatDoc), textBrightYellow(conf.SubjectDoc), textBrightGreen(conf.Reference))
+	case ErrMissingTask:
+		message = fmt.Sprintf(errorTemplate, textRed(errorTitle), textRed(m), textBrightGreen(formatDoc), textBrightYellow("This type requires task"), textBrightGreen(conf.Reference))
 	case nil:
 		return
 	default:

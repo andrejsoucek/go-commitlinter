@@ -5,6 +5,7 @@ skip_prefixes:
 type_rules:
   - type: feat
     description: for a new feature for the user, not a new feature for build script.
+    task: true
   - type: fix
     description: for a bug fix for the user, not a fix to a build script.
   - type: perf
@@ -14,6 +15,8 @@ type_rules:
   - type: style
     description: for formatting changes, missing semicolons, etc.
   - type: refactor
+    description: for refactoring production code, e.g. renaming a variable.
+  - type: ref
     description: for refactoring production code, e.g. renaming a variable.
   - type: test
     description: for adding missing tests, refactoring tests; no production code change.

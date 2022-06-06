@@ -15,42 +15,89 @@ func TestNewFormat(t *testing.T) {
 	}{
 		{
 			Name:    "happy path",
-			Message: "feat(test): samples",
+			Message: "feat(test): samples [#1234]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
+				Task:    "1234",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "happy path 2",
-			Message: "feat(test):                         samples",
+			Message: "feat(test): samples [#5432]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
+				Task:    "5432",
+			},
+			wantErr: nil,
+		},
+		{
+			Name:    "happy path 3",
+			Message: "fix: typo",
+			want: Format{
+				Type:    "fix",
+				Scope:   "",
+				Subject: "typo",
+				Task:    "",
+			},
+			wantErr: nil,
+		},
+		{
+			Name:    "whitespace",
+			Message: "feat(test): samples [#5432] ",
+			want: Format{
+				Type:    "feat",
+				Scope:   "test",
+				Subject: "samples",
+				Task:    "5432",
+			},
+			wantErr: nil,
+		},
+		{
+			Name:    "whitespace 2",
+			Message: "feat(test):    samples [#5432]",
+			want: Format{
+				Type:    "feat",
+				Scope:   "test",
+				Subject: "samples",
+				Task:    "5432",
+			},
+			wantErr: nil,
+		},
+		{
+			Name:    "whitespace 3",
+			Message: "feat(test): samples      [#5432]",
+			want: Format{
+				Type:    "feat",
+				Scope:   "test",
+				Subject: "samples",
+				Task:    "5432",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "invalid format",
-			Message: "feat(test):samples",
+			Message: "chore(test):samples",
 			wantErr: ErrFormat,
 		},
 		{
 			Name:    "scope empty",
-			Message: "feat: global",
+			Message: "docs: global",
 			want: Format{
-				Type:    "feat",
+				Type:    "docs",
 				Scope:   "",
 				Subject: "global",
+				Task:    "",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "scope empty 2",
-			Message: "feat(): global",
+			Message: "perf(): global",
 			wantErr: ErrScope,
 		},
 		{
@@ -60,17 +107,17 @@ func TestNewFormat(t *testing.T) {
 		},
 		{
 			Name:    "subject empty 1",
-			Message: "feat(test):",
+			Message: "ref(test):",
 			wantErr: ErrFormat,
 		},
 		{
 			Name:    "subject empty 2",
-			Message: "feat(test):   ",
+			Message: "refactor(test):   ",
 			wantErr: ErrFormat,
 		},
 		{
 			Name: "subject empty 3",
-			Message: "feat(test):        		 ",
+			Message: "style(test):        		 ",
 			wantErr: ErrFormat,
 		},
 	}
@@ -100,11 +147,12 @@ func TestVerify(t *testing.T) {
 	}{
 		{
 			Name:    "happy path",
-			Message: "feat(test): samples",
+			Message: "feat(test): samples [#PROJECT-45]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
+				Task:    "PROJECT-45",
 			},
 			wantErr: nil,
 		},
