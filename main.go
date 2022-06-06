@@ -42,7 +42,7 @@ var (
 	FormatRegularPattern = `([a-zA-Z]+)(\(.*\))?:\s(.*?)(\s\[#\S+\])?$`
 
 	errorTitle    = "============================ Invalid Message ================================"
-	errorTemplate = "\n%s\ntitle message:	%s\ncorrect format:	%s\n\n%s\n\nSee: %s\n"
+	errorTemplate = "\n%s\ncommit message:	%s\ncorrect format:	%s\n\n%s\n\nSee: %s\n"
 	footer        = "============================================================================="
 
 	ErrStyle       = errors.New("invalid style error")
