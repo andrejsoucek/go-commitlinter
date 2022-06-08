@@ -15,23 +15,23 @@ func TestNewFormat(t *testing.T) {
 	}{
 		{
 			Name:    "happy path",
-			Message: "feat(test): samples [#1234]",
+			Message: "feat(test): samples [ISSUE-1234]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
-				Task:    "1234",
+				Task:    "ISSUE-1234",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "happy path 2",
-			Message: "feat(test): samples [#5432]",
+			Message: "feat(test): samples [ISSUE-5432]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
-				Task:    "5432",
+				Task:    "ISSUE-5432",
 			},
 			wantErr: nil,
 		},
@@ -48,34 +48,34 @@ func TestNewFormat(t *testing.T) {
 		},
 		{
 			Name:    "whitespace",
-			Message: "feat(test): samples [#5432] ",
+			Message: "feat(test): samples [ISSUE-5432] ",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
-				Task:    "5432",
+				Task:    "ISSUE-5432",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "whitespace 2",
-			Message: "feat(test):    samples [#5432]",
+			Message: "feat(test):    samples [ISSUE-5432]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
-				Task:    "5432",
+				Task:    "ISSUE-5432",
 			},
 			wantErr: nil,
 		},
 		{
 			Name:    "whitespace 3",
-			Message: "feat(test): samples      [#5432]",
+			Message: "feat(test): samples      [ISSUE-5432]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",
 				Subject: "samples",
-				Task:    "5432",
+				Task:    "ISSUE-5432",
 			},
 			wantErr: nil,
 		},
@@ -147,7 +147,7 @@ func TestVerify(t *testing.T) {
 	}{
 		{
 			Name:    "happy path",
-			Message: "feat(test): samples [#PROJECT-45]",
+			Message: "feat(test): samples [PROJECT-45]",
 			want: Format{
 				Type:    "feat",
 				Scope:   "test",

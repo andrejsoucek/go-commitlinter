@@ -18,7 +18,7 @@ import (
 const (
 	commitMsgFilePath = ".git/COMMIT_EDITMSG"
 	defaultYamlName   = ".commitlinter.yaml"
-	formatDoc         = "<type>(<scope>): <subject> [#optional-task]"
+	formatDoc         = "<type>(<scope>): <subject> [task]"
 	scopeDoc          = "The <scope> can be empty (e.g. if the change is a global or difficult to assign to a single component), in which case the parentheses are omitted."
 	styleDoc          = "The <type> and <scope> should always be lowercase."
 	subjectDoc        = "The first letter of <subject> should be lowercase."
@@ -39,7 +39,7 @@ func textBrightYellow(s string) string {
 var (
 	r = flag.String("rule", "", "select rule file path (config.yaml)")
 
-	FormatRegularPattern = `([a-zA-Z]+)(\(.*\))?:\s(.*?)(\s\[#\S+\])?$`
+	FormatRegularPattern = `([a-zA-Z]+)(\(.*\))?:\s(.*?)(\s\[\S+\])?$`
 
 	errorTitle    = "============================ Invalid Message ================================"
 	errorTemplate = "\n%s\ncommit message:	%s\ncorrect format:	%s\n\n%s\n\nSee: %s\n"
@@ -199,7 +199,7 @@ func NewFormat(m string) (Format, error) {
 
 	task := ss[0][4]
 	if task != "" {
-		task = strings.TrimPrefix(strings.TrimSuffix(task, "]"), " [#")
+		task = strings.TrimPrefix(strings.TrimSuffix(task, "]"), " [")
 	}
 
 	f := Format{
