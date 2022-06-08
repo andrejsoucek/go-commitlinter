@@ -2,6 +2,8 @@ skip_prefixes:
   - 'Merge '
   - 'Revert '
   - 'fixup! '
+  - 'WIP'
+  - 'wip'
 type_rules:
   - type: feat
     description: a new feature for the user
