@@ -135,16 +135,18 @@ type Config struct {
 	SkipPrefixes []string  `yaml:"skip_prefixes"`
 	TypeRules    TypeRules `yaml:"type_rules"`
 	Reference    string    `yaml:"reference"`
+	ScopePattern string    `yaml:"scope_pattern"`
 	StyleDoc     string    `yaml:"style_doc"`
 	ScopeDoc     string    `yaml:"scope_doc"`
 	SubjectDoc   string    `yaml:"subject_doc"`
 }
 
 type Format struct {
-	Type    string
-	Scope   string
-	Subject string
-	Task    string
+	Type         string
+	Scope        string
+	ScopePattern string
+	Subject      string
+	Task         string
 }
 
 func fileExists(filename string) bool {
@@ -211,9 +213,18 @@ func NewFormat(m string) (Format, error) {
 	return f, nil
 }
 
-func (f Format) scopeLinter() error {
+func (f Format) scopeLinter(c Config) error {
 	if f.Scope != strings.ToLower(f.Scope) {
 		return ErrStyle
+	}
+	if c.ScopePattern != "" {
+		matched, err := regexp.MatchString(c.ScopePattern, f.Scope)
+		if err != nil {
+			return xerrors.Errorf("failed to compile scope pattern: %w", err)
+		}
+		if !matched {
+			return ErrScope
+		}
 	}
 
 	return nil
@@ -259,7 +270,7 @@ func (f Format) Verify(c Config) error {
 		return err
 	}
 
-	if err := f.scopeLinter(); err != nil {
+	if err := f.scopeLinter(c); err != nil {
 		return err
 	}
 

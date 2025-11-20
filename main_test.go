@@ -116,7 +116,7 @@ func TestNewFormat(t *testing.T) {
 			wantErr: ErrFormat,
 		},
 		{
-			Name: "subject empty 3",
+			Name:    "subject empty 3",
 			Message: "style(test):        		 ",
 			wantErr: ErrFormat,
 		},
@@ -147,10 +147,10 @@ func TestVerify(t *testing.T) {
 	}{
 		{
 			Name:    "happy path",
-			Message: "feat(test): samples [PROJECT-45]",
+			Message: "feat(api): samples [PROJECT-45]",
 			want: Format{
 				Type:    "feat",
-				Scope:   "test",
+				Scope:   "api",
 				Subject: "samples",
 				Task:    "PROJECT-45",
 			},
@@ -158,17 +158,22 @@ func TestVerify(t *testing.T) {
 		},
 		{
 			Name:    "invalid type",
-			Message: "invalid(test): test",
+			Message: "invalid(api): test",
 			wantErr: ErrType,
 		},
 		{
+			Name:    "invalid scope",
+			Message: "feat(invalid): test",
+			wantErr: ErrScope,
+		},
+		{
 			Name:    "invalid style",
-			Message: "feat(Hest): test",
+			Message: "Fix(client): test",
 			wantErr: ErrStyle,
 		},
 		{
 			Name:    "invalid subject",
-			Message: "feat(test): Add hoge",
+			Message: "feat(api): Add hoge",
 			wantErr: ErrSubject,
 		},
 	}
@@ -179,7 +184,7 @@ func TestVerify(t *testing.T) {
 			if err != nil {
 				assert.NoError(t, err)
 			}
-			c, _ := NewConfig("")
+			c, _ := NewConfig("rule-sample.yaml")
 
 			err = f.Verify(c)
 			if tc.wantErr == nil {
